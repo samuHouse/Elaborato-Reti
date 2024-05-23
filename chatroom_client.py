@@ -49,20 +49,26 @@ port = 8080
 
 # creazione socket e tentativo di connessione
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('localhost', port))
-client_socket.settimeout(0.5)
-stop = False
-# la ricezione dei messaggi eseguirà su un thread separato
-r = threading.Thread(target=receive, args=((client_socket, stop)))
-r.start()
-# il processo di scrittura invece verrà gestito nel main
-write(client_socket, stop)
-print("you succesfully disconnected, thank you")
-# provo a chiudere la connessione, se non è già chiusa
+connected = True
 try:
-    client_socket.send("{quit}".encode('utf-8'))
-    client_socket.close()
+    client_socket.connect(('localhost', port))
 except:
-    pass
+    print(f"There's no server active at {'localhost'} on port {port}")
+    connected = False
+if connected:
+    client_socket.settimeout(0.5)
+    stop = False
+    # la ricezione dei messaggi eseguirà su un thread separato
+    r = threading.Thread(target=receive, args=((client_socket, stop)))
+    r.start()
+    # il processo di scrittura invece verrà gestito nel main
+    write(client_socket, stop)
+    print("you succesfully disconnected, thank you")
+    # provo a chiudere la connessione, se non è già chiusa
+    try:
+        client_socket.send("{quit}".encode('utf-8'))
+        client_socket.close()
+    except:
+        pass
 
 time.sleep(1.5)
